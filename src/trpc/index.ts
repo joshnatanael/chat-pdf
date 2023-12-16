@@ -46,7 +46,7 @@ export const appRouter = router({
   createStripeSession: privateProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
 
-    const billingrl = absoluteUrl('/dashboard/billing');
+    const billingUrl = absoluteUrl('/dashboard/billing');
 
     if (!userId) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
@@ -58,21 +58,21 @@ export const appRouter = router({
 
     if (!dbUser) throw new TRPCError({ code: 'UNAUTHORIZED' });
 
-    const subscrtionPlan = await getUserSubscriptionPlan();
+    const subscriptionPlan = await getUserSubscriptionPlan();
 
-    if (subscrtionPlan.isSubscribed && dbUser.stripeCustomerId) {
-      const stripeSection = await stripe.billingPortal.sessions.create({
+    if (subscriptionPlan.isSubscribed && dbUser.stripeCustomerId) {
+      const stripeSession = await stripe.billingPortal.sessions.create({
         customer: dbUser.stripeCustomerId,
-        return_url: billingrl,
+        return_url: billingUrl,
       });
 
-      return { url: stripeSection.url };
+      return { url: stripeSession.url };
     }
 
     const stripeSession = await stripe.checkout.sessions.create({
-      success_url: billingrl,
-      cancel_url: billingrl,
-      payment_method_types: ['card'],
+      success_url: billingUrl,
+      cancel_url: billingUrl,
+      payment_method_types: ['card', 'paypal'],
       mode: 'subscription',
       billing_address_collection: 'auto',
       line_items: [
@@ -82,7 +82,7 @@ export const appRouter = router({
         },
       ],
       metadata: {
-        userId,
+        userId: userId,
       },
     });
 
