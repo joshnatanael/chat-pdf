@@ -14,9 +14,9 @@ import { ArrowRight, Check, HelpCircle, Minus } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-const Page = async () => {
+const Page = () => {
   const { getUser } = getKindeServerSession();
-  const user = await getUser();
+  const user = getUser();
 
   const pricingItems = [
     {
